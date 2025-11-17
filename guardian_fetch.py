@@ -1,13 +1,10 @@
 import requests
 import csv
 
-
-API_KEY = "YOUR_API_KEY_HERE"
+API_KEY = "e58deace-2a4d-4355-8b07-f225eaf5b467"
 BASE_URL = "https://content.guardianapis.com/search"
 
-
-def fetch_all_articles(query, max_pages=2):
-    """Fetch all articles for a given query from the Guardian API."""
+def fetch_all_articles(query):
     page = 1
     all_results = []
 
@@ -30,9 +27,9 @@ def fetch_all_articles(query, max_pages=2):
 
             print(f"Fetched page {page}")
 
-            if page >= data["response"]["pages"] or page >= max_pages:
+            if page >= data["response"]["pages"]:
                 break
-
+            
             page += 1
 
         except requests.exceptions.RequestException as e:
@@ -41,23 +38,19 @@ def fetch_all_articles(query, max_pages=2):
 
     return all_results
 
-
-# Fetch articles
-articles = fetch_all_articles("Russia Ukraine war", max_pages=2)
+# Fetch articles on Russia–Ukraine war
+articles = fetch_all_articles("Russia Ukraine war")
 print(f"Total articles fetched: {len(articles)}")
 
-
-# Save to CSV
-with open("guardian_articles.csv", "w", newline="", encoding="utf-8") as csvfile:
-    fieldnames = ["id", "webTitle", "webUrl", "headline", "bodyText"]
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
+# Save articles to CSV
+csv_file = "russia_ukraine_articles.csv"
+with open(csv_file, mode="w", newline="", encoding="utf-8") as file:
+    writer = csv.writer(file)
+    writer.writerow(["Headline", "Body"])  # CSV header
 
     for article in articles:
-        writer.writerow({
-            "id": article.get("id"),
-            "webTitle": article.get("webTitle"),
-            "webUrl": article.get("webUrl"),
-            "headline": article.get("fields", {}).get("headline"),
-            "bodyText": article.get("fields", {}).get("bodyText")
-        })
+        headline = article["fields"].get("headline", "")
+        body = article["fields"].get("bodyText", "")
+        writer.writerow([headline, body])
+
+print(f"Articles saved to {csv_file}")
